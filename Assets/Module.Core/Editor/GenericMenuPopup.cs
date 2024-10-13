@@ -48,11 +48,12 @@ namespace Module.Core.Editor
         public bool separator;
         public bool on;
 
-        public MenuItemNode(string p_name = "", MenuItemNode p_parent = null)
+        public MenuItemNode(string name = "", string tooltip = "", MenuItemNode parent = null)
         {
-            Name = p_name;
-            Parent = p_parent;
+            Name = name;
+            Parent = parent;
             Nodes = new FasterList<MenuItemNode>();
+            content = new(name, tooltip);
         }
 
         public string Name { get; private set; }
@@ -61,7 +62,7 @@ namespace Module.Core.Editor
 
         public FasterList<MenuItemNode> Nodes { get; private set; }
 
-        public void Reset(string p_name = "", MenuItemNode p_parent = null)
+        public void Reset(string name = "", MenuItemNode parent = null)
         {
             content = null;
             func = null;
@@ -69,36 +70,36 @@ namespace Module.Core.Editor
             userData = null;
             separator = false;
             on = false;
-            Name = p_name;
-            Parent = p_parent;
+            Name = name;
+            Parent = parent;
             Nodes.Clear();
         }
 
-        public MenuItemNode CreateNode(string p_name)
+        public MenuItemNode CreateNode(string name, string tooltip = "")
         {
-            var node = new MenuItemNode(p_name, this);
+            var node = new MenuItemNode(name, tooltip, this);
             Nodes.Add(node);
             return node;
         }
 
         // TODO Optimize
-        public MenuItemNode GetOrCreateNode(string p_name)
+        public MenuItemNode GetOrCreateNode(string name, string tooltip = "")
         {
-            return Nodes.Find(n => n.Name == p_name) ?? CreateNode(p_name);
+            return Nodes.Find(n => n.Name == name) ?? CreateNode(name, tooltip);
         }
 
-        public FasterList<MenuItemNode> Search(string p_search)
+        public FasterList<MenuItemNode> Search(string search)
         {
             var result = FasterListPool<MenuItemNode>.Get();
 
             foreach (var node in Nodes)
             {
-                if (node.Nodes.Count == 0 && node.ContainsInPath(p_search))
+                if (node.Nodes.Count == 0 && node.ContainsInPath(search))
                 {
                     result.Add(node);
                 }
 
-                var nodeResult = node.Search(p_search);
+                var nodeResult = node.Search(search);
                 result.AddRange(nodeResult);
 
                 FasterListPool<MenuItemNode>.Release(nodeResult);
@@ -144,16 +145,16 @@ namespace Module.Core.Editor
 
     public class GenericMenuPopup : PopupWindowContent
     {
-        public static GenericMenuPopup Get(GenericMenu p_menu, string p_title)
+        public static GenericMenuPopup Get(GenericMenu menu, string title)
         {
-            var popup = new GenericMenuPopup(p_menu, p_title);
+            var popup = new GenericMenuPopup(menu, title);
             return popup;
         }
 
-        public static GenericMenuPopup Show(GenericMenu p_menu, string p_title, Vector2 p_position)
+        public static GenericMenuPopup Show(GenericMenu menu, string title, Vector2 position)
         {
-            var popup = new GenericMenuPopup(p_menu, p_title);
-            PopupWindow.Show(new Rect(p_position.x, p_position.y, 0, 0), popup);
+            var popup = new GenericMenuPopup(menu, title);
+            PopupWindow.Show(new Rect(position.x, position.y, 0, 0), popup);
             return popup;
         }
 
@@ -218,6 +219,7 @@ namespace Module.Core.Editor
                 _tooltipStyle ??= new GUIStyle(EditorStyles.label) {
                     fontSize = 9,
                     wordWrap = true,
+                    richText = true,
                 };
 
                 return _tooltipStyle;
@@ -240,6 +242,36 @@ namespace Module.Core.Editor
             }
         }
 
+        private GUIStyle _labelStyle;
+
+        public GUIStyle LabelStyle
+        {
+            get
+            {
+                _labelStyle ??= new GUIStyle(EditorStyles.label) {
+                    richText = true,
+                    wordWrap = true,
+                };
+
+                return _labelStyle;
+            }
+        }
+
+        private GUIStyle _boldLabelStyle;
+
+        public GUIStyle BoldLabelStyle
+        {
+            get
+            {
+                _boldLabelStyle ??= new GUIStyle(EditorStyles.boldLabel) {
+                    richText = true,
+                    wordWrap = true,
+                };
+
+                return _boldLabelStyle;
+            }
+        }
+
         private Vector2 _scrollPosition;
         private MenuItemNode _currentNode;
         private MenuItemNode _hoverNode;
@@ -259,18 +291,18 @@ namespace Module.Core.Editor
         public bool showTooltip = false;
         public bool showTitle = false;
 
-        public GenericMenuPopup(MenuItemNode p_rootNode, string p_title)
+        public GenericMenuPopup(MenuItemNode rootNode, string title)
         {
-            title = p_title;
-            showTitle = !string.IsNullOrWhiteSpace(title);
-            _currentNode = rootNode = p_rootNode;
+            this.title = title;
+            showTitle = !string.IsNullOrWhiteSpace(this.title);
+            _currentNode = this.rootNode = rootNode;
         }
 
-        public GenericMenuPopup(GenericMenu p_menu, string p_title)
+        public GenericMenuPopup(GenericMenu menu, string title)
         {
-            title = p_title;
-            showTitle = !string.IsNullOrWhiteSpace(title);
-            _currentNode = rootNode = GenerateMenuItemNodeTree(p_menu);
+            this.title = title;
+            showTitle = !string.IsNullOrWhiteSpace(this.title);
+            _currentNode = rootNode = GenerateMenuItemNodeTree(menu);
         }
 
         public override Vector2 GetWindowSize()
@@ -278,7 +310,7 @@ namespace Module.Core.Editor
             return new Vector2(width, height);
         }
 
-        public override void OnGUI(Rect p_rect)
+        public override void OnGUI(Rect rect)
         {
             if (Event.current.type == EventType.Layout)
             {
@@ -289,24 +321,24 @@ namespace Module.Core.Editor
 
             if (showTitle)
             {
-                DrawTitle(new Rect(p_rect.x, p_rect.y, p_rect.width, 24));
+                DrawTitle(new Rect(rect.x, rect.y, rect.width, 24));
             }
 
             if (showSearch)
             {
-                DrawSearch(new Rect(p_rect.x + 5, p_rect.y + (showTitle ? 24 : 0), p_rect.width - 10, 30));
+                DrawSearch(new Rect(rect.x + 5, rect.y + (showTitle ? 24 : 0), rect.width - 10, 30));
             }
 
             DrawMenuItems(new Rect(
-                  p_rect.x + 5
-                , p_rect.y + (showTitle ? 24 : 0) + (showSearch ? 22 : 0)
-                , p_rect.width - 10
-                , p_rect.height - (showTooltip ? 60 : 0) - (showTitle ? 24 : 0) - (showSearch ? 22 : 0)
+                  rect.x + 5
+                , rect.y + (showTitle ? 24 : 0) + (showSearch ? 30 : 0)
+                , rect.width - 10
+                , rect.height - (showTooltip ? 60 : 0) - (showTitle ? 24 : 0) - (showSearch ? 30 : 0)
             ));
 
             if (showTooltip)
             {
-                DrawTooltip(new Rect(p_rect.x + 5, p_rect.y + p_rect.height - 58, p_rect.width - 10, 56));
+                DrawTooltip(new Rect(rect.x + 5, rect.y + rect.height - 58, rect.width - 10, 56));
             }
 
             if (resizeToContent)
@@ -317,24 +349,24 @@ namespace Module.Core.Editor
             EditorGUI.FocusTextInControl("Search");
         }
 
-        private void DrawTitle(Rect p_rect)
+        private void DrawTitle(Rect rect)
         {
             _contentHeight += 24;
 
-            GUI.Label(p_rect, title, TitleStyle);
+            GUI.Label(rect, title, TitleStyle);
         }
 
-        private void DrawSearch(Rect p_rect)
+        private void DrawSearch(Rect rect)
         {
             _contentHeight += 30;
 
             GUI.SetNextControlName("Search");
-            _search = GUI.TextField(p_rect, _search, EditorStyles.toolbarSearchField);
+            _search = GUI.TextField(rect, _search, EditorStyles.toolbarSearchField);
         }
 
-        private void DrawTooltip(Rect p_rect)
+        private void DrawTooltip(Rect rect)
         {
-            _contentHeight += 60;
+            _contentHeight += 58;
 
             if (_hoverNode == null
                 || _hoverNode.content == null
@@ -344,12 +376,12 @@ namespace Module.Core.Editor
                 return;
             }
 
-            GUI.Label(p_rect, _hoverNode.content.tooltip, TooltipStyle);
+            GUI.Label(rect, _hoverNode.content.tooltip, TooltipStyle);
         }
 
-        private void DrawMenuItems(Rect p_rect)
+        private void DrawMenuItems(Rect rect)
         {
-            GUILayout.BeginArea(p_rect);
+            GUILayout.BeginArea(rect);
 
             if (_useScroll)
             {
@@ -360,11 +392,11 @@ namespace Module.Core.Editor
 
             if (string.IsNullOrWhiteSpace(_search) || _search.Length < 2)
             {
-                DrawNodeTree(p_rect);
+                DrawNodeTree(rect);
             }
             else
             {
-                DrawNodeSearch(p_rect);
+                DrawNodeSearch(rect);
             }
 
             GUILayout.EndVertical();
@@ -398,6 +430,8 @@ namespace Module.Core.Editor
 
             var lastPath = "";
             var whiteBoxStyle = WhiteBoxStyle;
+            var labelStyle = LabelStyle;
+            var boldLabelStyle = BoldLabelStyle;
             var sb = new StringBuilder();
 
             foreach (var node in search)
@@ -407,14 +441,12 @@ namespace Module.Core.Editor
                 if (string.Equals(nodePath, lastPath, StringComparison.Ordinal) == false)
                 {
                     _contentHeight += 20;
-                    GUILayout.Label(nodePath, GUILayout.Height(20));
+                    GUILayout.Label(nodePath, boldLabelStyle, GUILayout.Height(20));
                     lastPath = nodePath;
 
                     GUILayout.Space(4);
                     _contentHeight += 4;
                 }
-
-                _contentHeight += 20;
 
                 var origColor = GUI.color;
                 GUI.color = _hoverNode == node ? Color.cyan : origColor;
@@ -428,12 +460,13 @@ namespace Module.Core.Editor
                     }
 
                     GUI.color = _hoverNode == node ? Color.cyan : origColor;
-                    GUILayout.Label(node.Name, GUILayout.Height(20));
+                    GUILayout.Label(node.Name, labelStyle, GUILayout.Height(20));
                 }
                 GUILayout.EndHorizontal();
                 GUI.color = origColor;
 
                 var nodeRect = GUILayoutUtility.GetLastRect();
+                _contentHeight += Mathf.CeilToInt(nodeRect.height + 4f);
 
                 if (Event.current.isMouse)
                 {
@@ -446,7 +479,7 @@ namespace Module.Core.Editor
                                 _currentNode = node;
                                 _repaint = true;
                             }
-                            else
+                            else if (node.func != null || node.func2 != null)
                             {
                                 node.Execute();
                                 base.editorWindow.Close();
@@ -495,6 +528,8 @@ namespace Module.Core.Editor
             }
 
             var whiteBoxStyle = WhiteBoxStyle;
+            var labelStyle = LabelStyle;
+            var boldLabelStyle = BoldLabelStyle;
 
             foreach (var node in _currentNode.Nodes)
             {
@@ -505,12 +540,10 @@ namespace Module.Core.Editor
                     continue;
                 }
 
-                _contentHeight += 20;
-
                 var origColor = GUI.color;
                 GUI.color = _hoverNode == node ? Color.cyan : origColor;
 
-                GUILayout.BeginHorizontal(EditorStyles.helpBox, GUILayout.Height(20));
+                GUILayout.BeginHorizontal(EditorStyles.helpBox);
                 {
                     if (showOnStatus)
                     {
@@ -520,14 +553,15 @@ namespace Module.Core.Editor
 
                     GUI.color = _hoverNode == node ? Color.cyan : origColor;
 
-                    var labelStyle = node.Nodes.Count > 0 ? EditorStyles.boldLabel : EditorStyles.label;
-                    GUILayout.Label(node.Name, labelStyle, GUILayout.Height(20));
+                    var nodeLabelStyle = node.Nodes.Count > 0 ? boldLabelStyle : labelStyle;
+                    GUILayout.Label(node.Name, nodeLabelStyle);
 
                 }
                 GUILayout.EndHorizontal();
                 GUI.color = origColor;
 
                 var nodeRect = GUILayoutUtility.GetLastRect();
+                _contentHeight += Mathf.CeilToInt(nodeRect.height + 4f);
 
                 if (Event.current.isMouse)
                 {
@@ -540,7 +574,7 @@ namespace Module.Core.Editor
                                 _currentNode = node;
                                 _repaint = true;
                             }
-                            else
+                            else if (node.func != null || node.func2 != null)
                             {
                                 node.Execute();
                                 base.editorWindow.Close();
@@ -564,21 +598,20 @@ namespace Module.Core.Editor
 
                 if (node.Nodes.Count > 0)
                 {
-                    var lastRect = GUILayoutUtility.GetLastRect();
-                    GUI.Label(new Rect(lastRect.x + lastRect.width - 20, lastRect.y + 1, 20, 20), "+", PlusStyle);
+                    GUI.Label(new Rect(nodeRect.x + nodeRect.width - 20, nodeRect.y - 1, 20, 20), "+", PlusStyle);
                 }
             }
         }
 
         // TODO Possible type caching?
-        public static MenuItemNode GenerateMenuItemNodeTree(GenericMenu p_menu)
+        public static MenuItemNode GenerateMenuItemNodeTree(GenericMenu menu)
         {
             var rootNode = new MenuItemNode();
 
-            if (p_menu == null)
+            if (menu == null)
                 return rootNode;
 
-            var menuItems = TryGetMenuItems(p_menu, "menuItems") ?? TryGetMenuItems(p_menu, "m_MenuItems");
+            var menuItems = TryGetMenuItems(menu, "menuItems") ?? TryGetMenuItems(menu, "m_MenuItems");
 
             foreach (var menuItem in menuItems)
             {
@@ -613,10 +646,10 @@ namespace Module.Core.Editor
 
             return rootNode;
 
-            static IEnumerable TryGetMenuItems(GenericMenu p_menu, string fieldName)
+            static IEnumerable TryGetMenuItems(GenericMenu menu, string fieldName)
             {
-                var menuItemsField = p_menu.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-                return menuItemsField?.GetValue(p_menu) as IEnumerable;
+                var menuItemsField = menu.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+                return menuItemsField?.GetValue(menu) as IEnumerable;
             }
         }
 
