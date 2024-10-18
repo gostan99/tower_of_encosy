@@ -132,6 +132,10 @@ namespace Module.Core.Buffers
         public Span<T> AsSpan()
             => _realBuffer.AsSpan();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<T> AsReadOnlySpan()
+            => _realBuffer.AsSpan();
+
         public void Dispose()
         {
             var array = _realBuffer.ToNativeArray();

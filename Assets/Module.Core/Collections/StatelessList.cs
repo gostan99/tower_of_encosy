@@ -7,7 +7,14 @@ using Module.Core.Buffers;
 
 namespace Module.Core.Collections
 {
+    /// <summary>
+    /// 'Stateless' means the list does not own an internal buffer and related data.
+    /// Instead, it relies on an <see cref="IBufferProvider{T}"/> to have access to those data.
+    /// Effectively, anything implementing <see cref="IBufferProvider{T}"/> can be used
+    /// as the external state for this list.
+    /// </summary>
     public class StatelessList<TState, T> : ICollection<T>, IReadOnlyCollection<T>, IList<T>, IReadOnlyList<T>
+        , IAsSpan<T>, IAsReadOnlySpan<T>, IAsMemory<T>, IAsReadOnlyMemory<T>
         where TState : IBufferProvider<T>
     {
         internal static readonly bool s_shouldPerformMemClear = TypeCache<T>.IsUnmanaged == false;

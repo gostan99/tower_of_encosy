@@ -68,6 +68,11 @@
             "define": "UNITY_ENTITIES"
         },
         {
+            "name": "com.unity.feature.2d",
+            "expression": "",
+            "define": "UNITY_FEATURE_2D"
+        },
+        {
             "name": "com.unity.mathematics",
             "expression": "",
             "define": "UNITY_MATHEMATICS"
@@ -116,11 +121,6 @@
             "name": "com.unity.ugui",
             "expression": "2.0.0",
             "define": "UNITY_TEXTMESHPRO"
-        },
-        {
-            "name": "org.nuget.system.runtime.compilerservices.unsafe",
-            "expression": "",
-            "define": "SYSTEM_RUNTIME_COMPILER_SERVICES_UNSAFE"
         }
     ],
     "noEngineReferences": false
