@@ -1,0 +1,29 @@
+{
+    "name": "Game.Common",
+    "rootNamespace": "Game.Common",
+    "references": [
+        "EncosyTower.Modules",
+        "Toolbox",
+        "Toolbox.Editor",
+        "UniTask",
+        "UniTask.Addressables",
+        "Unity.Addressables",
+        "Unity.Burst",
+        "Unity.Cinemachine",
+        "Unity.Collections",
+        "Unity.InputSystem",
+        "Unity.Logging",
+        "Unity.Mathematics",
+        "Unity.ResourceManager",
+        "Unity.Serialization"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

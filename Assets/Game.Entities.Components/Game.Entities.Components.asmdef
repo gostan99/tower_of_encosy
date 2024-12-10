@@ -1,0 +1,29 @@
+{
+    "name": "Game.Entities.Components",
+    "rootNamespace": "Game.Entities.Components",
+    "references": [
+        "EncosyTower.Modules",
+        "Game.Common",
+        "Latios.Calligraphics",
+        "Latios.Core",
+        "Latios.Kinemation",
+        "Latios.Psyshock",
+        "Latios.Transforms",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Entities.Graphics",
+        "Unity.Entities.Hybrid",
+        "Unity.Mathematics",
+        "Unity.Serialization"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

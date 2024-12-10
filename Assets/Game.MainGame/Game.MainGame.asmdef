@@ -1,0 +1,30 @@
+{
+    "name": "Game.MainGame",
+    "rootNamespace": "Game.MainGame",
+    "references": [
+        "DebugUI",
+        "EncosyTower.Modules",
+        "Game.Common",
+        "Game.Inputs",
+        "UniTask",
+        "UniTask.Addressables",
+        "Unity.Addressables",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.InputSystem",
+        "Unity.Logging",
+        "Unity.Mathematics",
+        "Unity.ResourceManager",
+        "Unity.TextMeshPro",
+        "Unity.Timeline"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
